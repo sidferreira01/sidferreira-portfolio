@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Alana &amp; Rafael | Convite de Casamento</title>
+<meta name="description" content="Convite digital do casamento de Alana e Rafael — 16 de dezembro de 2026, Espaço Jardim Imperial, Pituaçu, Salvador BA." />
+<meta name="theme-color" content="#5c6b34" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="stage">
+  <div class="app-frame" id="appFrame">
+
+    <!-- CAPA: abre como portas duplas ao clicar no botão dourado -->
+    <div class="cover" id="cover" aria-hidden="false">
+      <div class="door door-left" id="doorLeft"></div>
+      <div class="door door-right" id="doorRight"></div>
+
+      <button type="button" class="open-btn" id="openBtn" aria-label="Abrir convite">
+        <span class="open-btn__ring"></span>
+      </button>
+    </div>
+
+    <!-- PÁGINAS 2 e 3: navegação por arraste horizontal -->
+    <div class="pages-wrapper" id="pagesWrapper">
+      <div class="track" id="track">
+        <div class="page page--2">
+          <img src="assets/page2.webp" alt="Convite de casamento de Alana e Rafael. “Para que todos vejam, e saibam, e considerem, e juntamente entendam que a mão do Senhor fez isto.” Isaías 41:20. Alana & Rafael. Com a bênção de Deus e seus pais, convidam para celebração do seu casamento. 16 de dezembro de 2026, às 15:00h. Espaço Jardim Imperial, Pituaçu - Salvador BA." draggable="false" />
+        </div>
+        <div class="page page--3">
+          <img src="assets/page3.webp" alt="Será uma alegria ter você conosco nesse dia tão especial! Toque nos botões abaixo para confirmar presença, ver a localização ou enviar um mimo aos noivos." draggable="false" />
+
+          <a class="hotspot hotspot--rsvp" href="https://casamentonocontrole.com/c.html?slug=alana-e-rafael-5jb9&amp;modo=confirmar" target="_blank" rel="noopener noreferrer" aria-label="Confirme sua presença — clique aqui"></a>
+          <a class="hotspot hotspot--location" href="https://maps.app.goo.gl/pCqfUwRwReiFn86Q8?g_st=iw" target="_blank" rel="noopener noreferrer" aria-label="Localização — clique aqui"></a>
+          <a class="hotspot hotspot--gift" href="https://pixparaalanaerafael.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Mimo para os noivos — clique aqui"></a>
+        </div>
+      </div>
+
+      <!-- Indicadores / navegação de apoio -->
+      <div class="nav-dots" id="navDots" aria-hidden="true">
+        <span class="dot is-active" data-index="0"></span>
+        <span class="dot" data-index="1"></span>
+      </div>
+
+      <button type="button" class="edge-arrow edge-arrow--prev" id="prevBtn" aria-label="Página anterior" hidden>&#10094;</button>
+      <button type="button" class="edge-arrow edge-arrow--next" id="nextBtn" aria-label="Próxima página">&#10095;</button>
+
+      <div class="swipe-hint" id="swipeHint" aria-hidden="true">
+        <span class="swipe-hint__chevron">&#10095;</span>
+        <span class="swipe-hint__chevron">&#10095;</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

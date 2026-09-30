@@ -1,0 +1,2 @@
+# Opcional: identificação de falantes (pyannote community-1). Requer HF_TOKEN.
+pyannote.audio>=4.0

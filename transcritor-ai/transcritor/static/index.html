@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transcritor AI</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #16181d; --muted: #646b78; --line: #e3e6eb;
+    --accent: #4f46e5; --accent-soft: #eef0ff; --warn-bg: #fff3c4; --warn-line: #d9a400;
+    --ok: #0f8a5f; --err: #c0392b; --now: #dfe3ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --card: #171a21; --text: #e8eaf0; --muted: #9aa1ad; --line: #272b35;
+      --accent: #8b85ff; --accent-soft: #23244a; --warn-bg: #4a3b05; --warn-line: #e0b020;
+      --ok: #34c38f; --err: #ff6b5b; --now: #2c2f5c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    border-bottom: 1px solid var(--line); background: var(--card); position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 17px; margin: 0; }
+  .badge { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+  main { display: grid; grid-template-columns: 340px 1fr; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { header .hint { display: none; } main { padding: 12px; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 12px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  select, input[type=text], input[type=number], textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--text); font: inherit; }
+  textarea { min-height: 70px; resize: vertical; font-size: 13px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; }
+  .check { display: flex; gap: 8px; align-items: center; margin: 10px 0 0; color: var(--text); font-size: 14px; }
+  .check input { width: auto; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text); padding: 7px 12px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; width: 100%; margin-top: 14px; padding: 10px; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  #drop { border: 2px dashed var(--line); border-radius: 10px; padding: 22px 12px; text-align: center;
+    color: var(--muted); cursor: pointer; transition: .15s; }
+  #drop.over, #drop:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  #files { font-size: 13px; margin-top: 6px; color: var(--text); word-break: break-all; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  #jobs { list-style: none; margin: 0; padding: 0; }
+  #jobs li { padding: 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+  #jobs li:hover { background: var(--bg); }
+  #jobs li.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .jname { font-weight: 600; font-size: 14px; word-break: break-all; }
+  .jmeta { font-size: 12px; color: var(--muted); }
+  .bar { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .bar > i { display: block; height: 100%; background: var(--accent); transition: width .4s; }
+  .st-concluido { color: var(--ok); } .st-erro { color: var(--err); }
+  #viewer .empty { color: var(--muted); text-align: center; padding: 60px 10px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .toolbar input[type=text] { flex: 1; min-width: 160px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--muted); margin: 10px 0 14px; }
+  .stats b { color: var(--text); }
+  audio { width: 100%; position: sticky; top: 62px; z-index: 4; }
+  #transcript { max-height: calc(100vh - 290px); overflow-y: auto; padding-right: 6px; }
+  .para { margin: 0 0 16px; }
+  .ts { font-size: 12px; color: var(--accent); cursor: pointer; font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .spk { font-weight: 700; margin-right: 6px; }
+  .w { cursor: pointer; border-radius: 3px; }
+  .w:hover { background: var(--accent-soft); }
+  .w.now { background: var(--now); }
+  .show-low .w.low { background: var(--warn-bg); border-bottom: 2px solid var(--warn-line); }
+  .w.focus { outline: 2px solid var(--warn-line); }
+  mark { background: var(--warn-line); color: #000; border-radius: 2px; }
+  .downloads { display: flex; flex-wrap: wrap; gap: 6px; }
+  .err { color: var(--err); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎙️ Transcritor AI</h1>
+  <span class="badge" id="device">…</span>
+  <span class="hint" style="margin-left:auto">100% local · sem custo por minuto</span>
+</header>
+<main>
+  <section>
+    <div class="card">
+      <h2>Nova transcrição</h2>
+      <div id="drop">Arraste áudios/vídeos aqui ou clique<br><small>mp3, m4a, ogg (WhatsApp), wav, mp4, mkv…</small></div>
+      <input type="file" id="file" multiple hidden accept="audio/*,video/*,.ogg,.opus,.amr">
+      <div id="files"></div>
+
+      <label for="preset">Qualidade</label>
+      <select id="preset">
+        <option value="equilibrado">Equilibrado — large-v3-turbo + revisão (recomendado)</option>
+        <option value="maxima">Máxima precisão — large-v3, busca ampla (mais lento)</option>
+        <option value="rapido">Rápido — rascunho</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label for="lang">Idioma</label>
+          <select id="lang">
+            <option value="pt">Português</option><option value="en">Inglês</option>
+            <option value="es">Espanhol</option><option value="auto">Detectar</option>
+          </select>
+        </div>
+        <div>
+          <label for="nspk">Falantes</label>
+          <input type="number" id="nspk" min="0" max="20" value="0" title="0 = automático">
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="diarize"> Identificar quem falou</label>
+      <div class="hint" id="diar-hint"></div>
+      <label class="check"><input type="checkbox" id="denoise"> Reduzir ruído de fundo</label>
+
+      <label for="context">Contexto (opcional)</label>
+      <input type="text" id="context" placeholder="Ex.: Reunião comercial sobre o CRM LeadTalkAI.">
+      <label for="glossary">Glossário (opcional)</label>
+      <textarea id="glossary" placeholder="Um termo por linha. Correções: errado => certo&#10;Evolution API&#10;Supabase&#10;leed talk => LeadTalkAI"></textarea>
+      <div class="hint">Nomes próprios, marcas e siglas aqui aumentam muito a precisão.</div>
+
+      <button class="primary" id="send" disabled>Transcrever</button>
+      <div class="err" id="send-err"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>Arquivos</h2>
+      <ul id="jobs"></ul>
+    </div>
+  </section>
+
+  <section class="card" id="viewer"><div class="empty">Envie um arquivo ou selecione uma transcrição.</div></section>
+</main>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let token = localStorage.getItem('transcritor_token') || '';
+let jobs = [], selected = null, pending = [], words = [], wordEls = [], lowIdx = -1;
+
+async function api(path, opts = {}) {
+  opts.headers = Object.assign({}, opts.headers, token ? {Authorization: 'Bearer ' + token} : {});
+  const r = await fetch(path, opts);
+  if (r.status === 401) {
+    token = prompt('Token de acesso do Transcritor:') || '';
+    localStorage.setItem('transcritor_token', token);
+    return api(path, opts);
+  }
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  return r.json();
+}
+const withToken = url => token ? url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token) : url;
+
+function clock(s) {
+  s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  const p = n => String(n).padStart(2, '0');
+  return h ? `${p(h)}:${p(m)}:${p(x)}` : `${p(m)}:${p(x)}`;
+}
+
+// ---------- upload ----------
+const drop = $('#drop'), fileInput = $('#file');
+drop.onclick = () => fileInput.click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); setFiles(e.dataTransfer.files); };
+fileInput.onchange = () => setFiles(fileInput.files);
+function setFiles(list) {
+  pending = [...list];
+  $('#files').textContent = pending.map(f => `${f.name} (${(f.size / 1048576).toFixed(1)} MB)`).join(' · ');
+  $('#send').disabled = !pending.length;
+}
+$('#send').onclick = async () => {
+  const btn = $('#send'); btn.disabled = true; $('#send-err').textContent = '';
+  try {
+    for (const f of pending) {
+      btn.textContent = `Enviando ${f.name}…`;
+      const fd = new FormData();
+      fd.append('file', f);
+      fd.append('preset', $('#preset').value);
+      fd.append('language', $('#lang').value);
+      fd.append('diarize', $('#diarize').checked);
+      fd.append('num_speakers', $('#nspk').value || 0);
+      fd.append('denoise', $('#denoise').checked);
+      fd.append('glossary', $('#glossary').value);
+      fd.append('context', $('#context').value);
+      const job = await api('/api/jobs', {method: 'POST', body: fd});
+      selected = job.id;
+    }
+    pending = []; $('#files').textContent = ''; fileInput.value = '';
+    localStorage.setItem('transcritor_glossary', $('#glossary').value);
+    await refresh();
+  } catch (e) { $('#send-err').textContent = e.message; }
+  btn.textContent = 'Transcrever'; btn.disabled = !pending.length;
+};
+
+// ---------- lista de jobs ----------
+async function refresh() {
+  jobs = await api('/api/jobs');
+  $('#jobs').innerHTML = jobs.map(j => `
+    <li data-id="${j.id}" class="${j.id === selected ? 'sel' : ''}">
+      <div class="jname">${esc(j.filename)}</div>
+      <div class="jmeta st-${j.status}">${j.status}${j.status === 'processando' ? ' · ' + esc(j.stage) : ''}
+        ${j.duration ? ' · ' + clock(j.duration) : ''}${j.error ? ' · ' + esc(j.error) : ''}</div>
+      ${['na fila', 'processando'].includes(j.status) ? `<div class="bar"><i style="width:${Math.round(j.progress * 100)}%"></i></div>` : ''}
+    </li>`).join('') || '<li class="jmeta">Nenhum arquivo ainda.</li>';
+  $('#jobs').querySelectorAll('li[data-id]').forEach(li => li.onclick = () => openJob(li.dataset.id));
+  const cur = jobs.find(j => j.id === selected);
+  if (cur && cur.status === 'concluido' && $("#viewer").dataset.id !== cur.id) openJob(cur.id);
+  if (jobs.some(j => ['na fila', 'processando'].includes(j.status))) setTimeout(refresh, 1500);
+}
+
+// ---------- visualizador ----------
+async function openJob(id) {
+  selected = id;
+  document.querySelectorAll('#jobs li').forEach(li => li.classList.toggle('sel', li.dataset.id === id));
+  const job = await api('/api/jobs/' + id);
+  const v = $('#viewer');
+  v.dataset.id = job.status === 'concluido' ? id : '';
+  if (job.status !== 'concluido') {
+    v.innerHTML = `<div class="empty">${esc(job.filename)}<br>${job.status}${job.error ? ': ' + esc(job.error) : '…'}</div>`;
+    return;
+  }
+  const t = job.transcript, s = job.summary;
+  words = []; t.segments.forEach(seg => (seg.words.length ? seg.words : [{start: seg.start, end: seg.end, text: ' ' + seg.text, probability: 1}])
+    .forEach(w => words.push(Object.assign({}, w, {speaker: seg.speaker}))));
+  v.innerHTML = `
+    <div class="toolbar">
+      <strong style="flex:1;word-break:break-all">${esc(job.filename)}</strong>
+      <div class="downloads">${['txt','srt','vtt','md','json'].map(f =>
+        `<a href="${withToken(`/api/jobs/${id}/download/${f}`)}"><button>${f.toUpperCase()}</button></a>`).join('')}
+        <button id="copy">Copiar</button><button id="del" title="Excluir">🗑</button></div>
+    </div>
+    <audio id="player" controls preload="metadata" src="${withToken(`/api/jobs/${id}/audio`)}"></audio>
+    <div class="stats">
+      <span>Duração <b>${clock(t.duration)}</b></span>
+      <span>Palavras <b>${s.words}</b></span>
+      <span>Incertas <b>${s.low_confidence}</b></span>
+      ${t.speakers.length ? `<span>Falantes <b>${t.speakers.length}</b></span>` : ''}
+      <span>Modelo <b>${esc(t.model)}</b></span>
+      <span>Velocidade <b>${s.realtime_factor}x</b> tempo real</span>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Buscar na transcrição…">
+      <label class="check" style="margin:0"><input type="checkbox" id="showlow" checked> Destacar incertas</label>
+      <button id="nextlow">Próxima incerta ↓</button>
+    </div>
+    <div id="transcript" class="show-low">${renderParagraphs(t)}</div>`;
+  wordEls = [...v.querySelectorAll('.w')];
+  const player = $('#player');
+  v.querySelectorAll('[data-t]').forEach(el => el.onclick = () => { player.currentTime = +el.dataset.t; player.play(); });
+  player.ontimeupdate = () => highlight(player.currentTime);
+  $('#showlow').onchange = e => $('#transcript').classList.toggle('show-low', e.target.checked);
+  $('#nextlow').onclick = nextLow;
+  $('#search').oninput = e => search(e.target.value);
+  $('#copy').onclick = () => navigator.clipboard.writeText(plainText(t)).then(() => $('#copy').textContent = 'Copiado ✓');
+  $('#del').onclick = async () => {
+    if (!confirm('Excluir esta transcrição e o áudio?')) return;
+    await api('/api/jobs/' + id, {method: 'DELETE'});
+    v.dataset.id = ''; v.innerHTML = '<div class="empty">Excluído.</div>'; refresh();
+  };
+  lowIdx = -1;
+}
+
+function paragraphs(t) {
+  const out = [];
+  for (const seg of t.segments) {
+    const last = out[out.length - 1], prev = last && last[last.length - 1];
+    if (!prev || seg.speaker !== prev.speaker || seg.start - prev.end > 2 ||
+        last.reduce((n, s) => n + s.text.length, 0) > 900) out.push([seg]);
+    else last.push(seg);
+  }
+  return out;
+}
+function renderParagraphs(t) {
+  let i = 0;
+  return paragraphs(t).map(p => {
+    const inner = p.map(seg => (seg.words.length ? seg.words : [{start: seg.start, text: ' ' + seg.text, probability: 1}])
+      .map(w => `<span class="w${w.probability < 0.5 ? ' low' : ''}" data-i="${i++}" data-t="${w.start}" title="confiança ${Math.round(w.probability * 100)}%">${esc(w.text)}</span>`).join('')).join('');
+    return `<p class="para"><span class="ts" data-t="${p[0].start}">${clock(p[0].start)}</span>` +
+      (p[0].speaker ? `<span class="spk">${esc(p[0].speaker)}:</span>` : '') + inner + '</p>';
+  }).join('');
+}
+function plainText(t) {
+  return paragraphs(t).map(p => (p[0].speaker ? p[0].speaker + ': ' : '') + p.map(s => s.text).join(' ')).join('\n\n');
+}
+let nowEl = null;
+function highlight(time) {
+  let lo = 0, hi = words.length - 1, found = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (words[m].start <= time) { found = m; lo = m + 1; } else hi = m - 1; }
+  const el = wordEls[found];
+  if (el === nowEl) return;
+  nowEl && nowEl.classList.remove('now');
+  nowEl = el; if (!el) return;
+  el.classList.add('now');
+  const box = $('#transcript'), r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+  if (r.top < b.top || r.bottom > b.bottom) el.scrollIntoView({block: 'center', behavior: 'smooth'});
+}
+function nextLow() {
+  const lows = wordEls.filter(e => e.classList.contains('low'));
+  if (!lows.length) return;
+  lows[lowIdx]?.classList.remove('focus');
+  lowIdx = (lowIdx + 1) % lows.length;
+  const el = lows[lowIdx]; el.classList.add('focus');
+  el.scrollIntoView({block: 'center', behavior: 'smooth'});
+  const player = $('#player'); player.currentTime = Math.max(0, +el.dataset.t - 1.5); player.play();
+}
+function search(q) {
+  q = q.trim().toLowerCase();
+  wordEls.forEach(e => { e.innerHTML = esc(e.textContent); });
+  if (q.length < 2) return;
+  let first = null;
+  wordEls.forEach(e => {
+    const txt = e.textContent, i = txt.toLowerCase().indexOf(q);
+    if (i >= 0) { e.innerHTML = esc(txt.slice(0, i)) + '<mark>' + esc(txt.slice(i, i + q.length)) + '</mark>' + esc(txt.slice(i + q.length)); first ??= e; }
+  });
+  first?.scrollIntoView({block: 'center'});
+}
+
+// ---------- init ----------
+(async () => {
+  $('#glossary').value = localStorage.getItem('transcritor_glossary') || '';
+  try {
+    const c = await api('/api/config');
+    $('#device').textContent = c.device === 'cuda' ? 'GPU · ' + c.compute_type : 'CPU · ' + c.compute_type;
+    if (!c.diarization) {
+      $('#diarize').disabled = true;
+      $('#diar-hint').textContent = 'Instale requirements-diarization.txt e defina HF_TOKEN para ativar.';
+    }
+  } catch (e) { $('#device').textContent = 'erro: ' + e.message; }
+  refresh();
+})();
+</script>
+</body>
+</html>

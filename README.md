@@ -52,6 +52,11 @@ Ponte híbrida de comunicação que permite executar tarefas e monitorar sistema
 * **Tech Stack:** Python, n8n (Cloud & Local), Supabase (Realtime Queue), Evolution API, Gemini API (análise de mídia).
 * **Destaques:** Modelo de funcionamento tolerante a falhas (nuvem assume se o notebook local estiver desligado) e segurança baseada em números de telefones restritos.
 
+### 8. [Transcritor AI (Áudio → Texto de Alta Precisão)](./transcritor-ai/)
+Conversor de áudio/vídeo em texto 100% local que substitui assinaturas de transcrição (TurboScribe, Otter, Fireflies) e APIs cobradas por minuto.
+* **Tech Stack:** Python, faster-whisper (Whisper large-v3 / turbo), pyannote.audio (community-1), FastAPI, ffmpeg, Docker.
+* **Destaques:** 2ª passada automática que re-decodifica trechos de baixa confiança, filtro de alucinações do Whisper em português, glossário com correções forçadas, identificação de falantes, legendas SRT/VTT profissionais e interface web com revisão guiada das palavras incertas. Precisão medida com WER no FLEURS pt-BR.
+
 ---
 
 ## 🛠️ Contato e Links

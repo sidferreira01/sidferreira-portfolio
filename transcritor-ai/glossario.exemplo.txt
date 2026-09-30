@@ -1,0 +1,14 @@
+# Glossário do Transcritor AI
+# - Uma palavra/expressão por linha = vocabulário (o modelo passa a "conhecer" a grafia)
+# - "errado => certo" = correção forçada depois da transcrição
+# Dica: coloque nomes de clientes, produtos, siglas e jargões do seu negócio.
+
+LeadTalkAI
+Evolution API
+Supabase
+Gemini
+n8n
+Z-API
+leed talk => LeadTalkAI
+super base => Supabase
+evolution a p i => Evolution API

@@ -179,6 +179,45 @@ python -m transcritor transcrever *.ogg -p rapido --imprimir
 | `--sem-revisao` | Desliga a 2ª passada (mais rápido) |
 | `--pular-existentes` | Em lotes, não refaz o que já foi transcrito |
 
+### Ditado por voz em qualquer janela (falar com o Claude sem digitar)
+
+Segure uma tecla, fale e solte: o texto é transcrito **no seu computador** e colado onde o cursor
+estiver — Claude Code no terminal, claude.ai no navegador, VS Code, WhatsApp Web…
+
+```bash
+pip install -r requirements-ditado.txt
+python -m transcritor ditado                    # segure Ctrl DIREITO, fale, solte
+python -m transcritor ditado --enviar           # já aperta Enter depois de colar
+python -m transcritor ditado --modo alternar --tecla f9   # toque F9 p/ gravar, toque de novo p/ enviar
+python -m transcritor ditado -m small           # mais rápido em PCs fracos (um pouco menos preciso)
+python -m transcritor ditado -g glossario.exemplo.txt     # reconhece seus termos (LeadTalkAI, Supabase…)
+```
+
+Deixe esse terminal aberto (pode minimizar) e use a tecla em qualquer janela. Bipes indicam início e fim
+da gravação; o terminal do ditado mostra o texto reconhecido e o tempo de cada fala.
+
+| Opção | Descrição |
+|---|---|
+| `--tecla` | `ctrl_r` (padrão), `alt_r` (Option direito no Mac), `f8`, `f9`, `scroll_lock`… |
+| `--modo` | `segurar` (padrão) ou `alternar` |
+| `--saida` | `colar` (padrão; Ctrl/Cmd+V), `digitar` (padrão no Linux, funciona em qualquer terminal) ou `copiar` |
+| `--enviar` | Aperta Enter depois de inserir |
+| `--microfone N` / `--listar-microfones` | Escolhe o microfone |
+| `--sem-som` | Sem bipes |
+
+**Medido (CPU de 4 núcleos, sem GPU):** frases de 11–20 s ficam prontas em **~4–5 s** com `large-v3-turbo`
+e em **~2,5–3 s** com `small`. Com GPU, menos de 1 s. A pontuação e as maiúsculas saem corretas, voz baixa é
+amplificada automaticamente e ruído/silêncio não vira texto inventado.
+
+Observações:
+- **Por que Ctrl direito?** Sozinho ele não digita nada em nenhum app, então não atrapalha o Claude Code
+  (o Espaço, usado pelo `/voice` nativo, digitaria espaços). Evite letras como atalho.
+- **macOS:** dê permissão de *Acessibilidade* e *Microfone* ao Terminal (Ajustes → Privacidade e Segurança).
+  Use `--tecla alt_r` se o teclado não tiver Ctrl direito.
+- **Linux:** funciona em X11; no Wayland o atalho global e a digitação simulada podem ser bloqueados pelo sistema.
+- **Windows:** se for colar em um programa aberto como Administrador, rode o ditado também como Administrador.
+- A área de transferência é restaurada logo após colar (use `--saida digitar` se algum app perder a colagem).
+
 ### Docker / VPS
 ```bash
 docker build -t transcritor-ai .
@@ -225,6 +264,7 @@ transcritor-ai/
 │   ├── config.py        # presets e glossário
 │   ├── server.py        # API FastAPI + fila
 │   ├── cli.py           # linha de comando
+│   ├── dictation.py     # ditado por voz: atalho global, microfone, colar na janela ativa
 │   └── static/index.html
 ├── bench/fleurs_wer.py  # benchmark de precisão (WER)
 └── tests/               # pytest (não precisa baixar modelo)

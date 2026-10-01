@@ -1,0 +1,4 @@
+# Opcional: ditado por voz em qualquer janela (python -m transcritor ditado)
+sounddevice>=0.4
+pynput>=1.7
+pyperclip>=1.8

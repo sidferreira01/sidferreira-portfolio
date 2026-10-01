@@ -55,7 +55,7 @@ Ponte híbrida de comunicação que permite executar tarefas e monitorar sistema
 ### 8. [Transcritor AI (Áudio → Texto de Alta Precisão)](./transcritor-ai/)
 Conversor de áudio/vídeo em texto 100% local que substitui assinaturas de transcrição (TurboScribe, Otter, Fireflies) e APIs cobradas por minuto.
 * **Tech Stack:** Python, faster-whisper (Whisper large-v3 / turbo), pyannote.audio (community-1), FastAPI, ffmpeg, Docker.
-* **Destaques:** 2ª passada automática que re-decodifica trechos de baixa confiança, filtro de alucinações do Whisper em português, glossário com correções forçadas, identificação de falantes, legendas SRT/VTT profissionais e interface web com revisão guiada das palavras incertas. Precisão medida com WER no FLEURS pt-BR.
+* **Destaques:** 2ª passada automática que re-decodifica trechos de baixa confiança, filtro de alucinações do Whisper em português, glossário com correções forçadas, identificação de falantes, legendas SRT/VTT profissionais, interface web com revisão guiada das palavras incertas e **ditado por voz em qualquer janela** (segure uma tecla, fale e o texto é colado — inclusive no Claude Code). Precisão medida com WER no FLEURS pt-BR.
 
 ---
 

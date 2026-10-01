@@ -149,6 +149,51 @@ class Transcriber:
     def __init__(self, opts: TranscribeOptions):
         self.opts = opts
 
+    def _decode(self, samples, report: ProgressFn):
+        """Whisper + 2ª passada + limpeza sobre um array 16 kHz mono."""
+        opts = self.opts
+        duration = len(samples) / SAMPLE_RATE
+        report("carregando modelo", 0.0)
+        model = load_model(opts.model)
+        prompt = build_prompt(opts)
+
+        fw_segments, info = model.transcribe(
+            samples,
+            language=opts.language,
+            beam_size=opts.beam_size,
+            best_of=opts.best_of,
+            patience=opts.patience,
+            condition_on_previous_text=opts.condition_on_previous_text,
+            initial_prompt=prompt,
+            word_timestamps=True,
+            vad_filter=opts.vad,
+            vad_parameters={"min_silence_duration_ms": opts.vad_min_silence_ms},
+            hallucination_silence_threshold=opts.hallucination_silence_threshold,
+        )
+        raw = []
+        for s in fw_segments:  # gerador: decodifica sob demanda
+            raw.append(s)
+            report("transcrevendo", min(s.end / duration, 1.0) if duration else 1.0)
+        segments = _convert(raw)
+
+        if opts.revision_pass:
+            segments = revise_segments(model, samples, segments, opts, prompt, report)
+
+        return postprocess.postprocess(segments, opts.replacements), info
+
+    def transcribe_samples(self, samples, progress: Optional[ProgressFn] = None) -> Transcript:
+        """Transcreve áudio já em memória (float32, 16 kHz, mono) — usado pelo ditado."""
+        t0 = time.perf_counter()
+        segments, info = self._decode(samples, progress or (lambda stage, frac: None))
+        return Transcript(
+            segments=segments,
+            language=info.language,
+            language_probability=float(info.language_probability),
+            duration=len(samples) / SAMPLE_RATE,
+            model=self.opts.model,
+            processing_seconds=time.perf_counter() - t0,
+        )
+
     def transcribe(self, src: str | Path, progress: Optional[ProgressFn] = None) -> Transcript:
         from faster_whisper import decode_audio
 
@@ -161,34 +206,7 @@ class Transcriber:
         try:
             samples = decode_audio(str(wav), sampling_rate=SAMPLE_RATE)
             duration = len(samples) / SAMPLE_RATE
-
-            report("carregando modelo", 0.0)
-            model = load_model(opts.model)
-            prompt = build_prompt(opts)
-
-            fw_segments, info = model.transcribe(
-                samples,
-                language=opts.language,
-                beam_size=opts.beam_size,
-                best_of=opts.best_of,
-                patience=opts.patience,
-                condition_on_previous_text=opts.condition_on_previous_text,
-                initial_prompt=prompt,
-                word_timestamps=True,
-                vad_filter=opts.vad,
-                vad_parameters={"min_silence_duration_ms": opts.vad_min_silence_ms},
-                hallucination_silence_threshold=opts.hallucination_silence_threshold,
-            )
-            raw = []
-            for s in fw_segments:  # gerador: decodifica sob demanda
-                raw.append(s)
-                report("transcrevendo", min(s.end / duration, 1.0) if duration else 1.0)
-            segments = _convert(raw)
-
-            if opts.revision_pass:
-                segments = revise_segments(model, samples, segments, opts, prompt, report)
-
-            segments = postprocess.postprocess(segments, opts.replacements)
+            segments, info = self._decode(samples, report)
 
             speakers: List[str] = []
             if opts.diarize:
